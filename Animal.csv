@@ -1,2 +1,3 @@
-id,height,weight,
-1, 200, 500, 
+id,name,height,weight,
+2, ragar, 12, 45, 
+3,atio,13,4,
