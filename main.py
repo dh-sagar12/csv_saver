@@ -1,155 +1,144 @@
-class CSVSave():
+from models import NewsModel, Users
+from view import Authenticate
 
-    def save(self, *args, **kwargs):
-        header_str = ''
-        value_str = ''
 
-        request_data = self.__dict__
-        request_data['id'] = self.get_new_id()
+if __name__ == '__main__':
+    authorised_user = None
+    print('hello world')
+    while True:
+        print('\n...........................')
+        print('What do you want to do?')
+        print('Choose Following OPtions:=')
+        print('''
+            L : To Login
+            S: Sign Up
+            R: Read News
+            C: Create News
+            U: Update News
+            D: Delete News
+        ''')
+        option = input('>>>>  ')
+        if option.upper() == 'L':
+            print('----Login Page:----- ')
+            print("Enter Your Credentials")
+            print('--------------------')
+            username = input('Username: ')
+            password = input('Password: ')
+            authenticate = Authenticate()
+            authorised_user = authenticate.login(
+                username=username, password=password)
+            print(authorised_user)
 
-        for key, val in request_data.items():
-            header_str = header_str + f'{key},'
-            value_str = value_str + f'{val},'
+        elif option.upper() == 'S':
+            authorised = None
+            print('\n----Sign Up Page:----- ')
+            print("Enter Your Details")
+            print('--------------------')
+            username = input('Username: ')
+            password = input('Password: ')
+            user_instance = Users(username=username, password=password)
+            user_instance.create()
+            print('USER CREATED SUCCESSFULLY!!')
 
-        try:
-            with open(f"{self.__class__.__name__}.csv", 'r+') as csv_file:
-                header_item = csv_file.readlines()
-                if len(header_item) > 0:
-                    csv_file.writelines(f'{value_str}\n')
+        elif option.upper() == 'R':
+            print('\nFULL RETRIVE OR PARTIAL RETRIVE:')
+            print('Full Retrive (F)')
+            print('Pratial Retrive (P)')
+            retrive_type = input('>>> ')
+            if retrive_type.upper() == 'F':
+                news_instance = NewsModel()
+                data = news_instance.get()
+                print('\n')
+                print('\n')
+                # print(data)
+                for item in data:
+                    for key, value in item.items():
+                        print(f"{key} : {value}\n ")
+
+                    print('-------------------------------------------')
+
+            elif retrive_type.upper() == 'P':
+                print('\n Choose News ID: ')
+                try:
+                    news_id = int(input('>>>> '))
+                except Exception as e:
+                    print(e)
+
+                news_instance = NewsModel()
+                data = news_instance.get(id=news_id)
+                print('\n')
+                print('\n')
+                # print(data[0])
+                for key, value in data[0].items():
+                    print(f"{key} : {value}\n ")
+
+            else:
+                print("Invalid Retrive Type")
+
+        elif option.upper() == 'C':
+            print('\n------------')
+            if authorised_user is None:
+                print('Authentication Required !! Please Login First')
+            else:
+                authenticate = Authenticate()
+                verified = authenticate.verify_user(user_id=authorised_user)
+                if verified.get('user_id') is not None:
+                    print('\n PROVIDE DATA TO CREATE NEWS: ')
+                    title = input('Title:>>> ')
+                    description = input('description:>>> ')
+                    news = NewsModel(title=title, description=description)
+                    news.create()
+
+                    print('\nNews Created Successfully!!!')
+                else:
+                    authorised_user = None
+                    print('\nUser Token Expired!! Please Login Again')
+
+        elif option.upper() == 'D':
+            print('\n------------')
+            if authorised_user is None:
+                print('Authentication Required !! Please Login First')
+            else:
+                authenticate = Authenticate()
+                verified = authenticate.verify_user(user_id=authorised_user)
+                if verified.get('user_id') is not None:
+                    print('\n PROVIDE ID TO DELETE NEWS: ')
+                    id = input('Id:>>> ')
+                    news = NewsModel()
+                    news.delete(id=id)
+                    print('\nNews Deleted Successfully!!!')
+                else:
+                    authorised_user = None
+                    print('\nUser Token Expired!! Please Login Again')
+
+        elif option.upper() == 'U':
+            print('\n------------')
+            if authorised_user is None:
+                print('Authentication Required !! Please Login First')
+            else:
+                authenticate = Authenticate()
+                verified = authenticate.verify_user(user_id=authorised_user)
+                if verified.get('user_id') is not None:
+                    print('\n PROVIDE ID TO UPDATE: ')
+                    id = input('Id:>>> ')
+                    news = NewsModel()
+                    news_item = news.get(id=id)
+
+                    if len(news_item) > 0:
+                        print(
+                            '\nProvided Updated Items. SKip if you do not want to Update:\n')
+                        updated_dict = {}
+                        for key, value in news_item[0].items():
+                            if key != 'id':
+                                user_input = input(f'({value})\n{key}: \n>>> ')
+                                if len(user_input.strip()) > 0:
+                                    updated_dict[f'{key}'] = user_input
+                        updated_dict['id'] =  news_item[0].get('id')
+                        news.update(data = updated_dict)
+
+                    else:
+                        print(f'News with id : {id} is not available!!!')
 
                 else:
-                    csv_file.writelines(f'{header_str}\n')
-                    csv_file.writelines(f'{value_str}\n')
-        except FileNotFoundError:  
-            with open(f"{self.__class__.__name__}.csv", 'w+') as csv_file:
-                header_item = csv_file.readlines()
-                if len(header_item) > 0:
-                    csv_file.writelines(f'{value_str}\n')
-                    print('Item Saved Successfully!!!')
-
-
-                else:
-                    csv_file.writelines(f'{header_str}\n')
-                    csv_file.writelines(f'{value_str}\n')
-                    print('Item Saved Successfully!!!')
-        
-    def delete(self,id):
-        try:
-            with open(f"{self.__class__.__name__}.csv", 'r') as csv_file:
-                data = csv_file.readlines()
-                for index, item in enumerate(data):
-                    item_id =  item.split(',')[0]
-                    if str(item_id) ==  str(id):
-                        data.pop(index)   
-        except FileNotFoundError:
-            print('FILE NOT FOUND')
-
-        try:
-            with open(f"{self.__class__.__name__}.csv", 'w') as csv_file:
-                csv_file.writelines(data)
-                print('Deleted !!!!')
-
-
-        except FileNotFoundError:
-            print('file Not Found')
-
-
-    def update(self, *args, **kwargs):
-        request_data = kwargs
-        required_fields  =  self.__dict__.keys()
-        for item in required_fields:
-            if item not in request_data.keys():
-                print(f'{item} is requeired Field')
-                return 
-        try:
-            with open(f"{self.__class__.__name__}.csv", 'r') as csv_file:
-                data = csv_file.readlines()
-                ids =  [item.split(',')[0] for item in data]
-                if str(request_data.get('id')) not in ids:
-                    print("Id Doesn't Exists!!!")
-                    return  
-
-        except FileNotFoundError:
-            print('FIle NOt FOund')
-
-        data_str = ''
-        for item in request_data.values():
-            data_str += f'{item}, '
-        
-        data_str+='\n'
-
-        try:
-            for index, item in enumerate(data):
-                    item_id =  item.split(',')[0]
-                    if str(item_id) ==  str(request_data.get('id')):
-                        data[index] = data_str                    
-
-        except Exception as e:
-            print(f'{e}')
-        try:
-            with open(f"{self.__class__.__name__}.csv", 'w') as csv_file:
-                csv_file.writelines(data)
-        except FileNotFoundError:
-            print('file NOt FOund')
-
-    def get(self, id):
-        try:
-            with open(f"{self.__class__.__name__}.csv", 'r') as csv_file:
-                data = csv_file.readlines()
-                for index, item in enumerate(data):
-                    item_id =  item.split(',')[0]
-                    if str(item_id) ==  str(id):
-                        resp_data =   data.pop(index)   
-                        print(resp_data)
-        except FileNotFoundError:
-            print('FILE NOT FOUND')
-
-    def get_new_id(self):
-        try:
-            with open(f"{self.__class__.__name__}.csv", 'r') as csv_file:
-                content = csv_file.readlines()
-                print(content)
-                if len(content) > 0:
-                    last_id = int(content[-1].split(',')[0])
-                    return last_id + 1
-                else:
-                    return 1
-        except Exception as e:
-            return 1
-
-
-class StudentModel(CSVSave):
-
-    def __init__(self, name, grade, address, roll_number, contact, *args, **kwargs):
-        self.id = kwargs.get('id', 0)
-        self.name = name
-        self.grade = grade
-        self.address = address
-        self.roll_number = roll_number
-        self.contact = contact
-
-
-student = StudentModel(name='sagar', grade='twelve',
-                       address='ktm', roll_number=12, contact='987654')
-
-student2 = StudentModel(id=4,  name='Sagarrrrsss', grade='twelve',
-                        address='ktm', roll_number=12, contact='9876543')
-
-# student.save()
-# student_4 =  StudentModel()
-# student2.update()
-# student2.get(2)
-
-# student2  = StudentModel(id=2, name='adsfasdf')
-
-
-
-
-class Animal(CSVSave):
-    def __init__(self, name,  height, weight, *args, **kwargs) -> None:
-        self.id  =  kwargs.get('id', 0)
-        self.name =  name
-        self.height =  height
-        self.weight =  weight
-        super().__init__()
-
+                    authorised_user = None
+                    print('\nUser Token Expired!! Please Login Again')
