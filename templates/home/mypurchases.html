@@ -1,0 +1,86 @@
+{% extends 'home/layout.html' %}
+{% load static %}
+
+{% block title %}
+My Purchases- Jwellery Management
+{% endblock title %}
+
+{% block user_body %}
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+
+  }
+  
+
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+    white-space: nowrap;
+    
+
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+</style>
+<div class="mx-7">
+  <h2 class='text-2xl font-bold py-2'>My Purchases</h2>
+  <div class="overflow-scroll">
+    <table>
+      <tr>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Total Price</th>
+        <th>Customer Name</th>
+        <th>Address Line 1</th>
+        <th>Address Line 2</th>
+        <th>Postal Code</th>
+        <th>City</th>
+        <th>Ordered Date</th>
+        <th>Status</th>
+        <th>Payment Completed</th>
+        <th>Receipt</th>
+      </tr>
+
+      {% for purchase in pruchases %}
+      <tr>
+        <td>{{purchase.product_id}}</td>
+        <td>{{purchase.quantity}}</td>
+        <td>{{purchase.total_price}}</td>
+        <td>{{purchase.customer_name}}</td>
+        <td>{{purchase.primary_delivery_address}}</td>
+        <td>{{purchase.secondary_delivery_address}}</td>
+        <td>{{purchase.postal_code}}</td>
+        <td>{{purchase.city}}</td>
+        <td>{{purchase.ordered_date}}</td>
+        <td>{{purchase.order_status}}</td>
+        <td>{{purchase.payment_completed}}</td>
+        
+        <td>
+
+          {% if purchase.payment_completed %}
+            <a href="{% url "print_receipt" purchase.order_uuid %}">
+              <i class="fas fa-print"></i>  
+            </a>
+          
+          {% else %}
+            <p class='text-red-600'>Not available</p>
+
+          {% endif %}
+        </td>
+
+      </tr>
+      {% endfor %}
+
+    </table>
+  </div>
+</div>
+
+{% endblock user_body %}

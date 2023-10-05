@@ -1,0 +1,122 @@
+{% extends 'home/layout.html' %}
+{% load static %}
+
+{% block title %}
+Home- Jwellery Management
+{% endblock title %}
+
+{% block user_body %}
+
+
+<div class="owl-carousel ">
+    {% for images in banner_images %}
+    <div class="">
+        <div style="background-image: url({{images.banner_image.url}}); background-repeat: no-repeat; background-position: center; background-size: cover;"
+            class="">
+
+            <br>
+            <br>
+            <div class="text-center pt-28 text-xl text-white uppercase pb-5">
+                <p>{{images.banner_title}}</p>
+                <button class="bg-purple-600 py-1 px-4 text-sm cursor-pointer">
+                    <a href="{{images.banner_redirect_url}}">Browse</a>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+
+<hr class='my-2'>
+
+<div>
+    <h3 class='text-center text-2xl sm:text-3xl font-dwarika my-9'>Browse Product</h3>
+
+    <div class="col-span-3 ">
+        <div class="grid grid-cols-4  gap-2 mx-1">
+
+            <!-- product list  -->
+
+        {% for product in products %}
+        <div class="border shaodow-lg shadow cursor-pointer py-4">
+            <div class=" overflow-hidden" style="min-height: 200px;" >
+                    <a href="{% url 'view_product' product.slug %}">
+                    <img src="{{product.images.all.first.images.url}}" class="feature_items"
+                        alt="">
+                    </a>
+                </div>
+                <h3 class="text-center  font-semibold text-lg pt-5">{{product.product_name}}</h3>
+                <p class="text-center">Price: Rs. {{product.price}}</p>
+                <div class="flex justify-between mx-5 items-center">
+                    <a href="{% url 'checkout_page' product.slug %}" class="border bg-purple-600 text-white rounded  shadow-lg hover:bg-purple-500   w-2/3 text-center">
+                        <button>Buy</button>
+                    </a>
+                        <button type="submit" id="product_{{product.id|stringformat:"s"}}" onclick="AddRemoveCart( '{{ product.id|stringformat:"s" }}' )">
+                            <i class=" {% if product in user_cart %} fas {% else %} far {% endif %} fa-heart text-2xl text-red-600" id="cart_btn_{{product.id|stringformat:"s"}}"></i>
+                        </button>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+
+    <div class='my-6 flex  justify-center'>
+        <a href="{% url 'list_product' %}" class='border bg-purple-600 text-white px-4 py-2 text-center'>
+            <button>View More</button>
+        </a>
+    </div>
+</div>
+{% csrf_token %}
+<script>
+    var owl = $('.owl-carousel');
+    owl.owlCarousel({
+        items: 1,
+        loop: true,
+        margin: 10,
+        autoplay: true,
+        autoplayTimeout: 3000,
+        autoplayHoverPause: true
+    });
+    $('.play').on('click', function () {
+        owl.trigger('play.owl.autoplay', [1000])
+    })
+    $('.stop').on('click', function () {
+        owl.trigger('stop.owl.autoplay')
+    })
+
+
+    function AddRemoveCart(id) {
+        var element = "#product_" + id
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        let cart_btn =   "#cart_btn_" + id
+        $.ajax({
+          url: '/postcart/' + id,
+          type: 'POST',
+          contentType: 'application/json',
+          beforeSend: function (xhr){
+              xhr.setRequestHeader('X-CSRFToken', csrftoken);
+            },
+          success: function(data) {
+            if ($(cart_btn).hasClass("far")) {
+              console.log(data.message);
+              $(cart_btn).removeClass("far");
+              $(cart_btn).addClass("fas");
+            } else {
+              $(cart_btn).removeClass("fas");
+              $(cart_btn).addClass("far");
+            }
+            window.location.reload()
+
+          },
+          error: function(jqXhr, textStatus, errorThrown) {
+            console.log(errorThrown);
+          }
+        });
+      }
+</script>
+
+{% endblock user_body %}

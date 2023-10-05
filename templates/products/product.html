@@ -1,0 +1,140 @@
+{% extends 'home/layout.html' %}
+{% load static %}
+
+{% block title %}
+Product- Jwellery Management
+{% endblock title %}
+
+{% block user_body %}
+
+
+
+<div class='grid  grid-cols-1'>
+    <div class="col-span-1 bg-grey-200 mb-9 mt-1 border p-3 bg-gray-100 shadow-md ">
+        <div class='flex justify-between'>
+            <div>
+                <p class="font-bold">Filter By </p>
+            </div>
+            <div>
+                <select class="border shadow-md p-1 focus:outline-none outline-none">
+                    <option selected>Sort</option>
+                    <option value="a-z">Title(a-z)</option>
+                    <option value="z-a">Title(z-a)</option>
+                    <option value="z-a">Date(Newest)</option>
+                    <option value="z-a">Date(Oldest)</option>
+                    <option value="z-a">Price(Highest)</option>
+                    <option value="z-a">Price(Lowest)</option>
+                    <option value="z-a">Purity(Highest)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-span-1">
+        <div class="grid grid-cols-4">
+            <form method="get">
+                <div class="col-span-1 border py-6">
+                    <div class="">
+                        <h3 class="py-2 font-bold text-center">Price</h3>
+                        <div class="flex space-x-3 px-4 bg-transparent	">
+                            <input type="number" placeholder="From" class="w-2/3 border px-1 " name="from_price">
+                            <input type="number" placeholder="To" class="w-2/3 border  px-1" name="to_price">
+                        </div>
+                    </div>
+                    <br>
+                    <br>
+                    <div class="text-center my-5 shadow-md bg-purple-600 w-1/2 mx-auto text-white hover:shadow-lg">
+                        <button type="submit">Submit</button>
+                    </div>
+                </div>
+            </form>
+            <div class="col-span-3 ">
+                <h1 class="text-3xl font-bold px-6 pb-6"> {% if category %}<span>{{category.category_name}}</span>{% endif %} Products</h1>
+                <div class="grid grid-cols-4  gap-2 mx-1">
+
+                    <!-- product list  -->
+                    
+
+
+                {% for product in products %}
+                <div class="border shaodow-lg shadow cursor-pointer py-4">
+                    <div class=" overflow-hidden" style="min-height: 200px;" >
+                            <a href="{% url 'view_product' product.slug %}">
+                            <img src="{{product.images.all.first.images.url}}" class="feature_items"
+                                alt="">
+                            </a>
+                        </div>
+                        <h3 class="text-center  font-semibold text-lg pt-5">
+                            <a href="{% url 'view_product' product.slug %}">{{product.product_name}}</h3>
+                        </a>
+                        <p class="text-center">Price: Rs. {{product.price}}</p>
+                        <div class="flex justify-between mx-5 items-center">
+                            <a href="{% url 'checkout_page' product.slug %}" class="border bg-purple-600 text-white rounded-md  shadow  hover:bg-purple-500   w-2/3 text-center">
+                                <button>Buy</button>
+                            </a>
+                                <button type="submit" id="product_{{product.id|stringformat:"s"}}" onclick="AddRemoveCart( '{{ product.id|stringformat:"s" }}' )">
+                                    <i class=" {% if product in user_cart %} fas {% else %} far {% endif %} fa-heart text-2xl text-red-600" id="cart_btn_{{product.id|stringformat:"s"}}"></i>
+                                </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class='flex justify-between mx-4 my-4'>
+                {% if products.has_previous %}
+                    <form action="" method="get" >
+                        <input type="number" value="{{products.previous_page_number}}" name='page' hidden>
+                        <button type="submit" class='border px-2 py-1 bg-purple-600 text-white  rounded shadow  hover:bg-purple-500   text-center'>Previous</button>
+                    </form>
+                {% endif %}
+        
+                {% if products.has_next %}
+                    <form action="" method="get">
+                        <input type="number" value="{{products.next_page_number}}" name='page' hidden>
+                        <button type="submit" class='border px-2 py-1 self-end bg-purple-600 text-white rounded-md  shadow  hover:bg-purple-500   text-center'>Next</button>
+        
+                    </form>        
+                {% endif %}
+             </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% csrf_token %}
+
+<script>
+    function AddRemoveCart(id) {
+      var element = "#product_" + id
+      var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+      let cart_btn =   "#cart_btn_" + id
+      $.ajax({
+        url: '/postcart/' + id,
+        type: 'POST',
+        contentType: 'application/json',
+        beforeSend: function (xhr){
+            xhr.setRequestHeader('X-CSRFToken', csrftoken);
+          },
+        success: function(data) {
+          console.log(data);
+          if ($(cart_btn).hasClass("far")) {
+            $(cart_btn).removeClass("far");
+            $(cart_btn).addClass("fas");
+        } else {
+            $(cart_btn).removeClass("fas");
+            $(cart_btn).addClass("far");
+
+          }
+          window.location.reload()
+
+        },
+        error: function(jqXhr, textStatus, errorThrown) {
+          console.log(errorThrown);
+        }
+      });
+    }
+  </script>
+  
+
+{% endblock user_body %}

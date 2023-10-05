@@ -1,0 +1,42 @@
+{% extends 'siteadmin/layout.html' %}
+{% load static %}
+
+{% block admin_body %}
+<h1 class="text-3xl pt-6 pb-12">{{form_title}} {% if id %}<span>#{{id}}</span>{% endif %}</h1>
+<form enctype="multipart/form-data" class='text-black ' action="" method="post">
+    <div class=" flex flex-col w-1/2 justify-start space-y-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+
+
+
+        {% comment %} applicable only for add product page  {% endcomment %}
+      {% if image_formset %}
+          {{ image_formset.management_form }}
+          
+          <hr class='border-purple-600'>
+          
+          {% for form in image_formset %}
+          <div class='flex justify-between'>
+            <div>
+            {{ form.as_div }}
+            </div>
+            <div>
+              {% if  form.instance.id > 0  %}
+                  <img src="{{ form.instance.images.url }}">
+              {% endif %}
+            </div>
+          </div> 
+          <hr class='border-purple-600'>
+
+      
+          {% endfor %}
+
+      {% endif %}
+        <button type="submit" class="px-4 py-1 bg-purple-600 text-white my-4 w-1/4 rounded-md shadow-md">Save</button>
+        
+    </div>
+</form>
+
+{% endblock admin_body %}
